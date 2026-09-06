@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Blood Mafia Loot Quest Schedule</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+}
+
+#timezone {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #666;
+}
+
+.event {
+    background: white;
+    padding: 15px;
+    margin: 10px auto;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.slot {
+    font-weight: bold;
+}
+
+.time {
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<h1>Blood Mafia Loot Quest Schedule</h1>
+
+<p id="timezone"></p>
+
+<div id="events">
+    Loading schedule...
+</div>
+
+
+<script>
+
+// YOUR GOOGLE APPS SCRIPT API
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbyWbbEiUFi5QhqWUbY6-ecGI0ngFMHqoAgGu3zJVD1CNZ17BiFVu-xnUJ89CXXysbq8sA/exec";
+
+
+// Detect visitor timezone
+
+const visitorTimezone =
+    Intl.DateTimeFormat()
+    .resolvedOptions()
+    .timeZone;
+
+
+document.getElementById("timezone").innerText =
+    "Your timezone: " + visitorTimezone;
+
+
+
+async function loadEvents() {
+
+    try {
+
+        const response = await fetch(API_URL);
+
+        const data = await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(data.error);
+
+        }
+
+
+        const container =
+            document.getElementById("events");
+
+
+        container.innerHTML = "";
+
+
+        data.events.forEach(event => {
+
+
+            // Convert UTC time from Google Sheets
+
+            const utcDate =
+                new Date(event.utcTime);
+
+
+            // Convert automatically to visitor's local time
+
+            const localTime =
+                utcDate.toLocaleString(
+                    undefined,
+                    {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                        timeZoneName: "short"
+                    }
+                );
+
+
+            container.innerHTML += `
+
+                <div class="event">
+
+                    <div class="slot">
+                        Time Slot ${event.timeSlot}
+                    </div>
+
+                    <div class="time">
+                        ${localTime}
+                    </div>
+
+                </div>
+
+            `;
+
+        });
+
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+
+        document.getElementById("events").innerHTML =
+            "Error loading schedule: " + error.message;
+
+    }
+
+}
+
+
+loadEvents();
+
+</script>
+
+
+</body>
+
+</html>
